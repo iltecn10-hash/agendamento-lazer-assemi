@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ILTECN › Gestão Sindical — Agendamento do Espaço de Lazer</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Lora:wght@600;700&family=Inter:wght@400;500;600;700&display=swap');
+  :root {
+    --ink: #1E3A34; --ink-soft: #3E5750; --paper: #F5F4EE; --paper-alt: #ECEAE0;
+    --line: #D3CFC0; --teal: #145C52; --teal-dark: #0E4238; --gold: #B8912F;
+    --gold-soft: #EFE3C0; --rust: #9C5233; --danger: #A33B2E;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'Inter', sans-serif; background: var(--paper); color: var(--ink); }
+  header { background: var(--teal-dark); padding: 20px 16px 16px; border-bottom: 4px solid var(--gold); }
+  .brand { max-width: 640px; margin: 0 auto; display: flex; align-items: center; gap: 12px; }
+  .seal { width: 42px; height: 42px; border-radius: 50%; background: var(--gold); color: var(--teal-dark);
+    display: flex; align-items: center; justify-content: center; font-family: 'Lora', serif; font-weight: 700; font-size: 18px; flex-shrink: 0; }
+  .brand h1 { font-family: 'Lora', serif; color: #FBF9F2; margin: 0; font-size: 19px; letter-spacing: 0.03em; }
+  .brand p { margin: 2px 0 0; color: #C9D8D2; font-size: 12px; }
+  main { max-width: 640px; margin: 0 auto; padding: 22px 16px 60px; }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 20px; margin-bottom: 18px; }
+  .card h2 { font-family: 'Lora', serif; font-size: 16px; color: var(--teal-dark); margin: 0 0 4px; }
+  .card .sub { font-size: 12.5px; color: var(--ink-soft); margin: 0 0 14px; }
+  .campo { margin-bottom: 14px; }
+  .campo label { display: block; font-size: 12.5px; font-weight: 600; color: var(--ink-soft); margin-bottom: 5px; }
+  .campo input, .campo textarea, .campo select {
+    width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 5px; font-size: 14.5px;
+    font-family: 'Inter', sans-serif; color: var(--ink); background: #fff;
+  }
+  .campo input:focus, .campo textarea:focus { outline: none; border-color: var(--teal); }
+  .erro { color: var(--danger); font-size: 12px; margin-top: 4px; }
+  .linha2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 480px) { .linha2 { grid-template-columns: 1fr; } }
+  button.enviar {
+    width: 100%; background: var(--teal); color: #fff; border: none; border-radius: 6px; padding: 13px;
+    font-size: 15px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif;
+  }
+  button.enviar:hover { background: var(--teal-dark); }
+  button.enviar:disabled { opacity: 0.6; cursor: default; }
+  .aviso-sucesso {
+    background: #E7F1E5; border: 1px solid var(--teal); border-left: 4px solid var(--teal);
+    border-radius: 6px; padding: 16px; text-align: center; color: var(--teal-dark);
+  }
+  .aviso-sucesso h3 { margin: 6px 0 4px; font-family: 'Lora', serif; }
+  .aviso-sucesso p { margin: 0; font-size: 13.5px; color: var(--ink-soft); }
+  .mes-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .mes-nav button { background: var(--paper-alt); border: 1px solid var(--line); border-radius: 5px; padding: 6px 10px; cursor: pointer; font-size: 13px; }
+  .mes-nav span { font-weight: 600; font-family: 'Lora', serif; color: var(--teal-dark); }
+  .lista-ocupadas { list-style: none; padding: 0; margin: 0; }
+  .lista-ocupadas li {
+    display: flex; justify-content: space-between; gap: 8px; padding: 8px 0; border-bottom: 1px dashed var(--line);
+    font-size: 13px;
+  }
+  .lista-ocupadas li:last-child { border-bottom: none; }
+  .lista-ocupadas .data-tag {
+    font-family: monospace; background: var(--gold-soft); color: var(--teal-dark); padding: 2px 7px;
+    border-radius: 3px; font-weight: 700; flex-shrink: 0;
+  }
+  .vazio { color: var(--ink-soft); font-size: 13px; font-style: italic; padding: 6px 0; }
+  footer { text-align: center; font-size: 11.5px; color: var(--ink-soft); padding: 20px 16px 30px; }
+  a.link-admin { color: var(--ink-soft); }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <div class="seal">I</div>
+    <div>
+      <h1>ILTECN</h1>
+      <p>› Gestão Sindical · Agendamento do Espaço de Lazer</p>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="card">
+    <h2>Datas já reservadas</h2>
+    <p class="sub">Confira antes de pedir, para evitar escolher um dia já ocupado.</p>
+    <div class="mes-nav">
+      <button id="btnMesAnterior" type="button">‹ mês anterior</button>
+      <span id="mesAtualLabel"></span>
+      <button id="btnMesProximo" type="button">próximo mês ›</button>
+    </div>
+    <ul class="lista-ocupadas" id="listaOcupadas"></ul>
+  </div>
+
+  <div class="card">
+    <h2>Solicitar o espaço de lazer</h2>
+    <p class="sub">O pedido fica pendente até a secretaria aprovar. Você será avisado(a) pelo telefone informado.</p>
+
+    <div id="formulario">
+      <div class="campo">
+        <label for="fNome">Seu nome completo *</label>
+        <input type="text" id="fNome" />
+        <div class="erro" id="erroNome"></div>
+      </div>
+      <div class="linha2">
+        <div class="campo">
+          <label for="fMatricula">Matrícula (se souber)</label>
+          <input type="text" id="fMatricula" />
+        </div>
+        <div class="campo">
+          <label for="fTelefone">Telefone / WhatsApp *</label>
+          <input type="text" id="fTelefone" placeholder="(94) 99999-9999" />
+          <div class="erro" id="erroTelefone"></div>
+        </div>
+      </div>
+      <div class="campo">
+        <label for="fData">Data desejada *</label>
+        <input type="date" id="fData" />
+        <div class="erro" id="erroData"></div>
+      </div>
+      <div class="campo">
+        <label for="fFinalidade">Finalidade *</label>
+        <input type="text" id="fFinalidade" placeholder="Ex.: Aniversário, confraternização…" />
+        <div class="erro" id="erroFinalidade"></div>
+      </div>
+      <div class="campo">
+        <label for="fObs">Observações</label>
+        <textarea id="fObs" rows="3"></textarea>
+      </div>
+      <button class="enviar" id="btnEnviar" type="button">Enviar pedido</button>
+      <div class="erro" id="erroGeral" style="margin-top: 10px; text-align: center;"></div>
+    </div>
+
+    <div id="sucesso" class="aviso-sucesso" style="display:none;">
+      <h3>Pedido enviado! 🎉</h3>
+      <p>Aguarde o contato da secretaria confirmando ou não a reserva.</p>
+    </div>
+  </div>
+
+  <footer>
+    ILTECN › Gestão Sindical v1.0 · <a class="link-admin" href="/admin">Área da secretaria</a>
+  </footer>
+</main>
+
+<script>
+  let mesAtual = new Date().getMonth() + 1;
+  let anoAtual = new Date().getFullYear();
+  const MES_NOMES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+  function formatDateBR(iso) {
+    const [y,m,d] = iso.split('-');
+    return `${d}/${m}/${y}`;
+  }
+
+  async function carregarCalendario() {
+    document.getElementById('mesAtualLabel').textContent = `${MES_NOMES[mesAtual-1]} / ${anoAtual}`;
+    const res = await fetch(`/api/calendario?ano=${anoAtual}`);
+    const data = await res.json();
+    const doMes = data.confirmadas.filter(c => Number(c.data.split('-')[1]) === mesAtual);
+    const ul = document.getElementById('listaOcupadas');
+    ul.innerHTML = '';
+    if (doMes.length === 0) {
+      ul.innerHTML = '<li class="vazio">Nenhuma data reservada neste mês ainda.</li>';
+      return;
+    }
+    doMes.sort((a,b) => a.data.localeCompare(b.data)).forEach(c => {
+      const li = document.createElement('li');
+      li.innerHTML = `<span class="data-tag">${formatDateBR(c.data)}</span><span>${c.finalidade || ''}</span>`;
+      ul.appendChild(li);
+    });
+  }
+
+  document.getElementById('btnMesAnterior').addEventListener('click', () => {
+    mesAtual--; if (mesAtual < 1) { mesAtual = 12; anoAtual--; }
+    carregarCalendario();
+  });
+  document.getElementById('btnMesProximo').addEventListener('click', () => {
+    mesAtual++; if (mesAtual > 12) { mesAtual = 1; anoAtual++; }
+    carregarCalendario();
+  });
+
+  function limparErros() {
+    ['Nome','Telefone','Data','Finalidade','Geral'].forEach(campo => {
+      document.getElementById('erro' + campo).textContent = '';
+    });
+  }
+
+  document.getElementById('btnEnviar').addEventListener('click', async () => {
+    limparErros();
+    const btn = document.getElementById('btnEnviar');
+    const payload = {
+      nome: document.getElementById('fNome').value.trim(),
+      matricula: document.getElementById('fMatricula').value.trim(),
+      telefone: document.getElementById('fTelefone').value.trim(),
+      data: document.getElementById('fData').value,
+      finalidade: document.getElementById('fFinalidade').value.trim(),
+      observacoes: document.getElementById('fObs').value.trim(),
+    };
+
+    let temErro = false;
+    if (!payload.nome) { document.getElementById('erroNome').textContent = 'Informe seu nome.'; temErro = true; }
+    if (!payload.telefone) { document.getElementById('erroTelefone').textContent = 'Informe um telefone de contato.'; temErro = true; }
+    if (!payload.data) { document.getElementById('erroData').textContent = 'Escolha uma data.'; temErro = true; }
+    if (!payload.finalidade) { document.getElementById('erroFinalidade').textContent = 'Informe a finalidade.'; temErro = true; }
+    if (temErro) return;
+
+    btn.disabled = true;
+    btn.textContent = 'Enviando…';
+    try {
+      const res = await fetch('/api/solicitacoes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        if (data.errors) {
+          Object.keys(data.errors).forEach(campo => {
+            const el = document.getElementById('erro' + campo.charAt(0).toUpperCase() + campo.slice(1));
+            if (el) el.textContent = data.errors[campo];
+          });
+        } else {
+          document.getElementById('erroGeral').textContent = data.error || 'Erro ao enviar. Tente novamente.';
+        }
+        btn.disabled = false;
+        btn.textContent = 'Enviar pedido';
+        return;
+      }
+      document.getElementById('formulario').style.display = 'none';
+      document.getElementById('sucesso').style.display = 'block';
+      carregarCalendario();
+    } catch (e) {
+      document.getElementById('erroGeral').textContent = 'Erro de conexão. Verifique sua internet e tente novamente.';
+      btn.disabled = false;
+      btn.textContent = 'Enviar pedido';
+    }
+  });
+
+  carregarCalendario();
+</script>
+</body>
+</html>

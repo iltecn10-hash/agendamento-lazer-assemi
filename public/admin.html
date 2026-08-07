@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ILTECN › Gestão Sindical — Painel do Agendamento</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Lora:wght@600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap');
+  :root {
+    --ink: #1E3A34; --ink-soft: #3E5750; --paper: #F5F4EE; --paper-alt: #ECEAE0;
+    --line: #D3CFC0; --teal: #145C52; --teal-dark: #0E4238; --gold: #B8912F;
+    --gold-soft: #EFE3C0; --rust: #9C5233; --danger: #A33B2E;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'Inter', sans-serif; background: var(--paper); color: var(--ink); }
+  header { background: var(--teal-dark); padding: 16px 16px 14px; border-bottom: 4px solid var(--gold); }
+  .brand { max-width: 1000px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .brand-left { display: flex; align-items: center; gap: 12px; }
+  .seal { width: 38px; height: 38px; border-radius: 50%; background: var(--gold); color: var(--teal-dark);
+    display: flex; align-items: center; justify-content: center; font-family: 'Lora', serif; font-weight: 700; font-size: 16px; flex-shrink: 0; }
+  .brand h1 { font-family: 'Lora', serif; color: #FBF9F2; margin: 0; font-size: 17px; letter-spacing: 0.03em; }
+  .brand p { margin: 1px 0 0; color: #C9D8D2; font-size: 11.5px; }
+  #btnSair { background: transparent; border: 1px solid rgba(255,255,255,0.3); color: #EFE9D8; border-radius: 5px; padding: 7px 12px; cursor: pointer; font-size: 12.5px; display: none; }
+  main { max-width: 1000px; margin: 0 auto; padding: 22px 16px 60px; }
+
+  /* Login */
+  .login-wrap { display: flex; justify-content: center; padding-top: 40px; }
+  .login-card { background: #fff; border-radius: 10px; padding: 30px 28px; width: 100%; max-width: 360px; border-top: 4px solid var(--gold); box-shadow: 0 12px 30px rgba(0,0,0,0.08); }
+  .login-card h2 { font-family: 'Lora', serif; color: var(--teal-dark); margin: 0 0 4px; text-align: center; }
+  .login-card .sub { text-align: center; font-size: 12.5px; color: var(--ink-soft); margin: 0 0 20px; }
+
+  .campo { margin-bottom: 14px; }
+  .campo label { display: block; font-size: 12.5px; font-weight: 600; color: var(--ink-soft); margin-bottom: 5px; }
+  .campo input, .campo select, .campo textarea {
+    width: 100%; padding: 9px 11px; border: 1px solid var(--line); border-radius: 5px; font-size: 14px;
+    font-family: 'Inter', sans-serif; color: var(--ink); background: #fff;
+  }
+  .campo input:focus, .campo textarea:focus { outline: none; border-color: var(--teal); }
+  .erro { color: var(--danger); font-size: 12px; margin-top: 4px; }
+
+  button.primario {
+    background: var(--teal); color: #fff; border: none; border-radius: 5px; padding: 10px 16px;
+    font-size: 13.5px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif;
+  }
+  button.primario:hover { background: var(--teal-dark); }
+  button.primario:disabled { opacity: 0.6; }
+  button.largo { width: 100%; justify-content: center; padding: 11px; font-size: 14px; }
+
+  /* Painel */
+  .toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+  .toolbar select { border: 1px solid var(--line); border-radius: 5px; padding: 8px 10px; font-size: 13px; background: #fff; }
+  .resumo { font-size: 12.5px; color: var(--ink-soft); margin: 0 0 10px 2px; }
+
+  table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; font-size: 13px; }
+  thead th { background: var(--paper-alt); text-align: left; padding: 9px 12px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-soft); }
+  tbody td { padding: 9px 12px; border-top: 1px solid var(--line); vertical-align: top; }
+  tbody tr:nth-child(even) { background: #FBFAF6; }
+  .mono { font-family: 'IBM Plex Mono', monospace; }
+  .nome-cel { font-weight: 600; }
+  .motivo { font-size: 11.5px; color: var(--ink-soft); margin-top: 3px; }
+  .selo { display: inline-block; font-size: 10.5px; font-weight: 700; padding: 3px 8px; border-radius: 8px; letter-spacing: 0.03em; }
+  .selo-pendente { background: var(--gold-soft); color: var(--rust); }
+  .selo-confirmado { background: #E7F1E5; color: var(--teal-dark); }
+  .selo-recusado { background: #eee; color: #777; }
+  .acoes { display: flex; gap: 6px; flex-wrap: wrap; }
+  .btn-icone { background: transparent; border: 1px solid var(--line); border-radius: 5px; padding: 5px 9px; cursor: pointer; font-size: 12px; }
+  .btn-aprovar { color: var(--teal-dark); border-color: var(--teal); }
+  .btn-recusar, .btn-excluir { color: var(--danger); border-color: var(--danger); }
+  .vazio { text-align: center; padding: 30px; color: var(--ink-soft); font-style: italic; }
+
+  .overlay { position: fixed; inset: 0; background: rgba(20,30,27,0.55); display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 50; }
+  .modal { background: var(--paper); border-radius: 8px; padding: 22px; width: 100%; max-width: 420px; border-top: 4px solid var(--gold); }
+  .modal h3 { font-family: 'Lora', serif; color: var(--teal-dark); margin: 0 0 14px; }
+  .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
+  button.ghost { background: transparent; border: 1px solid var(--line); border-radius: 5px; padding: 9px 14px; cursor: pointer; font-size: 13px; }
+  .toast { position: fixed; bottom: 20px; right: 20px; background: var(--teal-dark); color: #fff; padding: 11px 16px; border-radius: 5px; font-size: 13px; box-shadow: 0 8px 20px rgba(0,0,0,0.2); border-left: 4px solid var(--gold); }
+  .toast.erro { background: var(--danger); border-left-color: #fff; }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <div class="brand-left">
+      <div class="seal">I</div>
+      <div>
+        <h1>ILTECN</h1>
+        <p>› Gestão Sindical · Painel do Agendamento</p>
+      </div>
+    </div>
+    <button id="btnSair">Sair</button>
+  </div>
+</header>
+
+<main>
+  <div id="areaLogin" class="login-wrap">
+    <form class="login-card" id="formLogin">
+      <h2>Entrar</h2>
+      <p class="sub">Acesso restrito à secretaria</p>
+      <div class="campo">
+        <label for="lUser">Usuário</label>
+        <input type="text" id="lUser" autofocus />
+      </div>
+      <div class="campo">
+        <label for="lPass">Senha</label>
+        <input type="password" id="lPass" />
+      </div>
+      <div class="erro" id="erroLogin" style="margin-bottom: 10px;"></div>
+      <button type="submit" class="primario largo">Entrar</button>
+    </form>
+  </div>
+
+  <div id="areaPainel" class="hidden">
+    <div class="toolbar">
+      <select id="filtroStatus">
+        <option value="todos">Todos os status</option>
+        <option value="pendente" selected>Pendentes</option>
+        <option value="confirmado">Confirmados</option>
+        <option value="recusado">Recusados</option>
+      </select>
+      <select id="filtroAno"></select>
+    </div>
+    <p class="resumo" id="resumo"></p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr><th>Data</th><th>Solicitante</th><th>Finalidade</th><th>Status</th><th>Ações</th></tr>
+        </thead>
+        <tbody id="corpoTabela"></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<div class="overlay hidden" id="overlayRecusa">
+  <div class="modal">
+    <h3>Recusar solicitação</h3>
+    <p id="recusaInfo" style="font-size: 13px; color: var(--ink-soft);"></p>
+    <div class="campo">
+      <label>Motivo (opcional)</label>
+      <textarea id="recusaMotivo" rows="3"></textarea>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="ghost" id="btnCancelarRecusa">Cancelar</button>
+      <button type="button" class="primario" id="btnConfirmarRecusa">Confirmar recusa</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay hidden" id="overlayExcluir">
+  <div class="modal">
+    <h3>Confirmar exclusão</h3>
+    <p id="excluirInfo" style="font-size: 13px; color: var(--ink-soft);"></p>
+    <div class="modal-footer">
+      <button type="button" class="ghost" id="btnCancelarExcluir">Cancelar</button>
+      <button type="button" class="primario" id="btnConfirmarExcluir" style="background: var(--danger);">Excluir</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let anoAtual = new Date().getFullYear();
+  let solicitacoes = [];
+  let recusaAlvo = null;
+  let excluirAlvo = null;
+
+  function toast(msg, tipo) {
+    const t = document.createElement('div');
+    t.className = 'toast' + (tipo === 'erro' ? ' erro' : '');
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 3000);
+  }
+
+  function formatDateBR(iso) {
+    const [y,m,d] = iso.split('-');
+    return `${d}/${m}/${y}`;
+  }
+
+  async function verificarSessao() {
+    const res = await fetch('/api/me');
+    if (res.ok) {
+      document.getElementById('areaLogin').classList.add('hidden');
+      document.getElementById('areaPainel').classList.remove('hidden');
+      document.getElementById('btnSair').style.display = 'inline-block';
+      montarSeletorAno();
+      carregarSolicitacoes();
+    }
+  }
+
+  function montarSeletorAno() {
+    const sel = document.getElementById('filtroAno');
+    sel.innerHTML = '';
+    [anoAtual - 1, anoAtual, anoAtual + 1].forEach(a => {
+      const opt = document.createElement('option');
+      opt.value = a; opt.textContent = a;
+      if (a === anoAtual) opt.selected = true;
+      sel.appendChild(opt);
+    });
+  }
+
+  document.getElementById('formLogin').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    document.getElementById('erroLogin').textContent = '';
+    const username = document.getElementById('lUser').value.trim();
+    const password = document.getElementById('lPass').value;
+    try {
+      const res = await fetch('/api/login', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) { document.getElementById('erroLogin').textContent = data.error || 'Erro ao entrar.'; return; }
+      document.getElementById('areaLogin').classList.add('hidden');
+      document.getElementById('areaPainel').classList.remove('hidden');
+      document.getElementById('btnSair').style.display = 'inline-block';
+      montarSeletorAno();
+      carregarSolicitacoes();
+    } catch (err) {
+      document.getElementById('erroLogin').textContent = 'Erro de conexão.';
+    }
+  });
+
+  document.getElementById('btnSair').addEventListener('click', async () => {
+    await fetch('/api/logout', { method: 'POST' });
+    location.reload();
+  });
+
+  async function carregarSolicitacoes() {
+    const status = document.getElementById('filtroStatus').value;
+    const ano = document.getElementById('filtroAno').value || anoAtual;
+    const res = await fetch(`/api/solicitacoes?ano=${ano}&status=${status}`);
+    if (!res.ok) { toast('Erro ao carregar solicitações.', 'erro'); return; }
+    const data = await res.json();
+    solicitacoes = data.solicitacoes;
+    renderizarTabela();
+  }
+
+  function renderizarTabela() {
+    const corpo = document.getElementById('corpoTabela');
+    document.getElementById('resumo').textContent = `${solicitacoes.length} solicitação(ões)`;
+    if (solicitacoes.length === 0) {
+      corpo.innerHTML = '<tr><td colspan="5" class="vazio">Nenhuma solicitação encontrada para os filtros aplicados.</td></tr>';
+      return;
+    }
+    corpo.innerHTML = solicitacoes.map(s => {
+      const selo = s.status === 'pendente' ? '<span class="selo selo-pendente">PENDENTE</span>'
+        : s.status === 'confirmado' ? '<span class="selo selo-confirmado">CONFIRMADO</span>'
+        : '<span class="selo selo-recusado">RECUSADO</span>';
+      const motivo = (s.status === 'recusado' && s.motivo_recusa) ? `<div class="motivo">Motivo: ${escapeHtml(s.motivo_recusa)}</div>` : '';
+      const acoesAprovacao = s.status === 'pendente'
+        ? `<button class="btn-icone btn-aprovar" onclick="aprovar(${s.id})">Aprovar</button>
+           <button class="btn-icone btn-recusar" onclick="abrirRecusa(${s.id})">Recusar</button>`
+        : '';
+      return `<tr>
+        <td class="mono">${formatDateBR(s.data)}</td>
+        <td>
+          <div class="nome-cel">${escapeHtml(s.nome)}</div>
+          <div class="motivo">${escapeHtml(s.telefone || '')}${s.matricula ? ' · matrícula ' + escapeHtml(s.matricula) : ''}</div>
+        </td>
+        <td>${escapeHtml(s.finalidade)}${s.observacoes ? `<div class="motivo">${escapeHtml(s.observacoes)}</div>` : ''}${motivo}</td>
+        <td>${selo}</td>
+        <td><div class="acoes">${acoesAprovacao}<button class="btn-icone btn-excluir" onclick="abrirExcluir(${s.id})">Excluir</button></div></td>
+      </tr>`;
+    }).join('');
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  async function aprovar(id) {
+    try {
+      const res = await fetch(`/api/solicitacoes/${id}/status`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'confirmado' }),
+      });
+      const data = await res.json();
+      if (!res.ok) { toast(data.error || 'Erro ao aprovar.', 'erro'); return; }
+      toast('Agendamento confirmado.');
+      carregarSolicitacoes();
+    } catch (e) { toast('Erro de conexão.', 'erro'); }
+  }
+
+  function abrirRecusa(id) {
+    recusaAlvo = solicitacoes.find(s => s.id === id);
+    document.getElementById('recusaInfo').textContent = `${recusaAlvo.nome} — ${formatDateBR(recusaAlvo.data)} — ${recusaAlvo.finalidade}`;
+    document.getElementById('recusaMotivo').value = '';
+    document.getElementById('overlayRecusa').classList.remove('hidden');
+  }
+  document.getElementById('btnCancelarRecusa').addEventListener('click', () => document.getElementById('overlayRecusa').classList.add('hidden'));
+  document.getElementById('btnConfirmarRecusa').addEventListener('click', async () => {
+    if (!recusaAlvo) return;
+    const motivo = document.getElementById('recusaMotivo').value;
+    try {
+      const res = await fetch(`/api/solicitacoes/${recusaAlvo.id}/status`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'recusado', motivoRecusa: motivo }),
+      });
+      if (!res.ok) { const data = await res.json(); toast(data.error || 'Erro ao recusar.', 'erro'); return; }
+      toast('Solicitação recusada.');
+      document.getElementById('overlayRecusa').classList.add('hidden');
+      carregarSolicitacoes();
+    } catch (e) { toast('Erro de conexão.', 'erro'); }
+  });
+
+  function abrirExcluir(id) {
+    excluirAlvo = solicitacoes.find(s => s.id === id);
+    document.getElementById('excluirInfo').textContent = `Excluir a solicitação de ${excluirAlvo.nome} (${formatDateBR(excluirAlvo.data)})? Esta ação não pode ser desfeita.`;
+    document.getElementById('overlayExcluir').classList.remove('hidden');
+  }
+  document.getElementById('btnCancelarExcluir').addEventListener('click', () => document.getElementById('overlayExcluir').classList.add('hidden'));
+  document.getElementById('btnConfirmarExcluir').addEventListener('click', async () => {
+    if (!excluirAlvo) return;
+    try {
+      await fetch(`/api/solicitacoes/${excluirAlvo.id}`, { method: 'DELETE' });
+      toast('Solicitação excluída.');
+      document.getElementById('overlayExcluir').classList.add('hidden');
+      carregarSolicitacoes();
+    } catch (e) { toast('Erro de conexão.', 'erro'); }
+  });
+
+  document.getElementById('filtroStatus').addEventListener('change', carregarSolicitacoes);
+  document.getElementById('filtroAno').addEventListener('change', carregarSolicitacoes);
+
+  verificarSessao();
+</script>
+</body>
+</html>

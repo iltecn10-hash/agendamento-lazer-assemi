@@ -1,0 +1,19 @@
+{
+  "name": "agendamento-lazer-assemi",
+  "version": "1.0.0",
+  "description": "ILTECN - Gestao Sindical - Agendamento online do espaco de lazer (ASSEMI)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "license": "UNLICENSED",
+  "dependencies": {
+    "@libsql/client": "^0.17.4",
+    "bcryptjs": "^3.0.3",
+    "express": "^5.2.1",
+    "express-session": "^1.19.0"
+  }
+}
