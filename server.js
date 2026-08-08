@@ -20,6 +20,23 @@ const db = createClient({ url: DB_URL, authToken: DB_AUTH_TOKEN });
 const PORT = process.env.PORT ? Number(process.env.PORT) : 3001;
 const NOME_ASSOCIACAO = process.env.NOME_ASSOCIACAO || 'ASSEMI';
 
+// CallMeBot: avisa automaticamente a secretaria no WhatsApp quando chega um pedido novo.
+// Configure via variáveis de ambiente (veja DEPLOY.md). Se não configurado, o sistema
+// simplesmente não envia o aviso — tudo o mais continua funcionando normalmente.
+const CALLMEBOT_PHONE = process.env.CALLMEBOT_PHONE || '';
+const CALLMEBOT_APIKEY = process.env.CALLMEBOT_APIKEY || '';
+
+async function avisarSecretariaWhatsApp(mensagem) {
+  if (!CALLMEBOT_PHONE || !CALLMEBOT_APIKEY) return; // não configurado, ignora silenciosamente
+  try {
+    const url = `https://api.callmebot.com/whatsapp.php?phone=${encodeURIComponent(CALLMEBOT_PHONE)}&text=${encodeURIComponent(mensagem)}&apikey=${encodeURIComponent(CALLMEBOT_APIKEY)}`;
+    await fetch(url);
+  } catch (e) {
+    console.log('Aviso: não foi possível enviar notificação ao WhatsApp da secretaria:', e.message);
+  }
+}
+
+
 async function migrar() {
   await db.execute(`
     CREATE TABLE IF NOT EXISTS solicitacoes (
@@ -221,6 +238,17 @@ async function start() {
             VALUES (?, ?, ?, ?, ?, ?, 'pendente')`,
       args: [String(body.nome).trim(), body.matricula || '', body.telefone || '', body.data, String(body.finalidade).trim(), body.observacoes || ''],
     });
+
+    const [ano2, mes2, dia2] = body.data.split('-');
+    avisarSecretariaWhatsApp(
+      `📅 Novo pedido de agendamento — ${NOME_ASSOCIACAO}\n\n` +
+      `Nome: ${String(body.nome).trim()}\n` +
+      `Data: ${dia2}/${mes2}/${ano2}\n` +
+      `Finalidade: ${String(body.finalidade).trim()}\n` +
+      `Telefone: ${body.telefone || 'não informado'}\n\n` +
+      `Acesse o painel para aprovar ou recusar.`
+    );
+
     res.status(201).json({ ok: true });
   });
 

@@ -20,7 +20,9 @@
     display: flex; align-items: center; justify-content: center; font-family: 'Lora', serif; font-weight: 700; font-size: 16px; flex-shrink: 0; }
   .brand h1 { font-family: 'Lora', serif; color: #FBF9F2; margin: 0; font-size: 17px; letter-spacing: 0.03em; }
   .brand p { margin: 1px 0 0; color: #C9D8D2; font-size: 11.5px; }
-  #btnSair { background: transparent; border: 1px solid rgba(255,255,255,0.3); color: #EFE9D8; border-radius: 5px; padding: 7px 12px; cursor: pointer; font-size: 12.5px; display: none; }
+  .header-actions { display: flex; gap: 8px; align-items: center; }
+  #btnSair, #btnMinhaConta { background: transparent; border: 1px solid rgba(255,255,255,0.3); color: #EFE9D8; border-radius: 5px; padding: 7px 12px; cursor: pointer; font-size: 12.5px; }
+  #btnSair:hover, #btnMinhaConta:hover { background: rgba(255,255,255,0.1); }
   main { max-width: 1000px; margin: 0 auto; padding: 22px 16px 60px; }
 
   /* Login */
@@ -66,6 +68,7 @@
   .btn-icone { background: transparent; border: 1px solid var(--line); border-radius: 5px; padding: 5px 9px; cursor: pointer; font-size: 12px; }
   .btn-aprovar { color: var(--teal-dark); border-color: var(--teal); }
   .btn-recusar, .btn-excluir { color: var(--danger); border-color: var(--danger); }
+  .btn-whatsapp { color: #1f7a3d; border-color: #1f7a3d; text-decoration: none; display: inline-block; }
   .vazio { text-align: center; padding: 30px; color: var(--ink-soft); font-style: italic; }
 
   .overlay { position: fixed; inset: 0; background: rgba(20,30,27,0.55); display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 50; }
@@ -88,7 +91,10 @@
         <p>› Gestão Sindical · Painel do Agendamento</p>
       </div>
     </div>
-    <button id="btnSair">Sair</button>
+    <div class="header-actions">
+      <button id="btnMinhaConta" style="display:none;">Minha conta</button>
+      <button id="btnSair" style="display:none;">Sair</button>
+    </div>
   </div>
 </header>
 
@@ -119,6 +125,7 @@
         <option value="recusado">Recusados</option>
       </select>
       <select id="filtroAno"></select>
+      <button type="button" class="primario" id="btnImprimir" style="background: var(--paper-alt); color: var(--ink); border: 1px solid var(--line);">🖨️ Imprimir / PDF</button>
     </div>
     <p class="resumo" id="resumo"></p>
     <div style="overflow-x:auto;">
@@ -158,6 +165,30 @@
   </div>
 </div>
 
+<div class="overlay hidden" id="overlayConta">
+  <div class="modal">
+    <h3>Minha conta</h3>
+    <p style="font-size: 13px; color: var(--ink-soft); margin-top: -8px;">Trocar senha de acesso ao painel</p>
+    <div class="campo">
+      <label>Senha atual</label>
+      <input type="password" id="contaSenhaAtual" />
+    </div>
+    <div class="campo">
+      <label>Nova senha (mínimo 6 caracteres)</label>
+      <input type="password" id="contaNovaSenha" />
+    </div>
+    <div class="campo">
+      <label>Confirmar nova senha</label>
+      <input type="password" id="contaConfirmarSenha" />
+    </div>
+    <div class="erro" id="erroConta"></div>
+    <div class="modal-footer">
+      <button type="button" class="ghost" id="btnCancelarConta">Cancelar</button>
+      <button type="button" class="primario" id="btnSalvarConta">Salvar nova senha</button>
+    </div>
+  </div>
+</div>
+
 <script>
   let anoAtual = new Date().getFullYear();
   let solicitacoes = [];
@@ -177,15 +208,18 @@
     return `${d}/${m}/${y}`;
   }
 
+  function mostrarPainel() {
+    document.getElementById('areaLogin').classList.add('hidden');
+    document.getElementById('areaPainel').classList.remove('hidden');
+    document.getElementById('btnSair').style.display = 'inline-block';
+    document.getElementById('btnMinhaConta').style.display = 'inline-block';
+    montarSeletorAno();
+    carregarSolicitacoes();
+  }
+
   async function verificarSessao() {
     const res = await fetch('/api/me');
-    if (res.ok) {
-      document.getElementById('areaLogin').classList.add('hidden');
-      document.getElementById('areaPainel').classList.remove('hidden');
-      document.getElementById('btnSair').style.display = 'inline-block';
-      montarSeletorAno();
-      carregarSolicitacoes();
-    }
+    if (res.ok) mostrarPainel();
   }
 
   function montarSeletorAno() {
@@ -211,11 +245,7 @@
       });
       const data = await res.json();
       if (!res.ok) { document.getElementById('erroLogin').textContent = data.error || 'Erro ao entrar.'; return; }
-      document.getElementById('areaLogin').classList.add('hidden');
-      document.getElementById('areaPainel').classList.remove('hidden');
-      document.getElementById('btnSair').style.display = 'inline-block';
-      montarSeletorAno();
-      carregarSolicitacoes();
+      mostrarPainel();
     } catch (err) {
       document.getElementById('erroLogin').textContent = 'Erro de conexão.';
     }
@@ -252,6 +282,9 @@
         ? `<button class="btn-icone btn-aprovar" onclick="aprovar(${s.id})">Aprovar</button>
            <button class="btn-icone btn-recusar" onclick="abrirRecusa(${s.id})">Recusar</button>`
         : '';
+      const acoesWhatsApp = s.status === 'confirmado' && s.telefone
+        ? `<a class="btn-icone btn-whatsapp" href="${linkWhatsAppConfirmacao(s)}" target="_blank" rel="noreferrer">Avisar no WhatsApp</a>`
+        : '';
       return `<tr>
         <td class="mono">${formatDateBR(s.data)}</td>
         <td>
@@ -260,7 +293,7 @@
         </td>
         <td>${escapeHtml(s.finalidade)}${s.observacoes ? `<div class="motivo">${escapeHtml(s.observacoes)}</div>` : ''}${motivo}</td>
         <td>${selo}</td>
-        <td><div class="acoes">${acoesAprovacao}<button class="btn-icone btn-excluir" onclick="abrirExcluir(${s.id})">Excluir</button></div></td>
+        <td><div class="acoes">${acoesAprovacao}${acoesWhatsApp}<button class="btn-icone btn-excluir" onclick="abrirExcluir(${s.id})">Excluir</button></div></td>
       </tr>`;
     }).join('');
   }
@@ -268,6 +301,13 @@
   function escapeHtml(str) {
     if (!str) return '';
     return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function linkWhatsAppConfirmacao(s) {
+    let telefone = String(s.telefone || '').replace(/\D/g, '');
+    if (telefone.length <= 11) telefone = '55' + telefone; // assume Brasil se não tiver código do país
+    const mensagem = `Olá, ${s.nome}! Sua reserva do espaço de lazer para o dia ${formatDateBR(s.data)} (${s.finalidade}) foi *confirmada*. Qualquer dúvida, entre em contato com a secretaria.`;
+    return `https://wa.me/${telefone}?text=${encodeURIComponent(mensagem)}`;
   }
 
   async function aprovar(id) {
@@ -323,6 +363,77 @@
 
   document.getElementById('filtroStatus').addEventListener('change', carregarSolicitacoes);
   document.getElementById('filtroAno').addEventListener('change', carregarSolicitacoes);
+
+  // ---- Minha conta (trocar senha) ----
+  document.getElementById('btnMinhaConta').addEventListener('click', () => {
+    document.getElementById('contaSenhaAtual').value = '';
+    document.getElementById('contaNovaSenha').value = '';
+    document.getElementById('contaConfirmarSenha').value = '';
+    document.getElementById('erroConta').textContent = '';
+    document.getElementById('overlayConta').classList.remove('hidden');
+  });
+  document.getElementById('btnCancelarConta').addEventListener('click', () => document.getElementById('overlayConta').classList.add('hidden'));
+  document.getElementById('btnSalvarConta').addEventListener('click', async () => {
+    const senhaAtual = document.getElementById('contaSenhaAtual').value;
+    const novaSenha = document.getElementById('contaNovaSenha').value;
+    const confirmarSenha = document.getElementById('contaConfirmarSenha').value;
+    const erroEl = document.getElementById('erroConta');
+    erroEl.textContent = '';
+    if (!novaSenha || novaSenha.length < 6) { erroEl.textContent = 'A nova senha deve ter ao menos 6 caracteres.'; return; }
+    if (novaSenha !== confirmarSenha) { erroEl.textContent = 'A confirmação não coincide com a nova senha.'; return; }
+    try {
+      const res = await fetch('/api/me/senha', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ senhaAtual, novaSenha }),
+      });
+      const data = await res.json();
+      if (!res.ok) { erroEl.textContent = data.error || 'Erro ao trocar a senha.'; return; }
+      toast('Senha alterada com sucesso.');
+      document.getElementById('overlayConta').classList.add('hidden');
+    } catch (e) {
+      erroEl.textContent = 'Erro de conexão.';
+    }
+  });
+
+  // ---- Imprimir / PDF ----
+  function escapeHtml2(str) { return escapeHtml(str); }
+  document.getElementById('btnImprimir').addEventListener('click', () => {
+    const status = document.getElementById('filtroStatus').value;
+    const ano = document.getElementById('filtroAno').value;
+    const linhas = solicitacoes.map(s => `<tr>
+      <td>${formatDateBR(s.data)}</td>
+      <td>${escapeHtml2(s.nome)}</td>
+      <td>${escapeHtml2(s.telefone || '')}</td>
+      <td>${escapeHtml2(s.finalidade)}</td>
+      <td>${s.status.toUpperCase()}</td>
+    </tr>`).join('');
+    const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8" />
+      <title>Agendamentos — Espaço de Lazer</title>
+      <style>
+        @page { margin: 14mm; size: A4 portrait; }
+        body { font-family: Arial, Helvetica, sans-serif; color: #111; margin: 0; }
+        header { border-bottom: 2px solid #145C52; padding-bottom: 10px; margin-bottom: 14px; }
+        header h1 { font-size: 16px; margin: 0 0 4px; color: #0E4238; }
+        header p { font-size: 11px; margin: 2px 0; color: #444; }
+        table { width: 100%; border-collapse: collapse; font-size: 11px; }
+        th, td { border: 1px solid #bbb; padding: 6px 8px; text-align: left; }
+        th { background: #ECEAE0; text-transform: uppercase; font-size: 9.5px; }
+      </style></head><body>
+      <header>
+        <h1>ILTECN › Gestão Sindical — Agendamentos do Espaço de Lazer</h1>
+        <p>Ano: ${ano} · Status: ${status === 'todos' ? 'Todos' : status}</p>
+        <p>Emitido em ${new Date().toLocaleString('pt-BR')} — ${solicitacoes.length} registro(s)</p>
+      </header>
+      <table>
+        <thead><tr><th>Data</th><th>Solicitante</th><th>Telefone</th><th>Finalidade</th><th>Status</th></tr></thead>
+        <tbody>${linhas}</tbody>
+      </table>
+      </body></html>`;
+    const printWindow = window.open('', '_blank', 'width=1000,height=800');
+    if (!printWindow) { toast('Pop-up bloqueado. Permita pop-ups para este site.', 'erro'); return; }
+    printWindow.document.open(); printWindow.document.write(html); printWindow.document.close();
+    setTimeout(() => { try { printWindow.focus(); printWindow.print(); } catch (e) {} }, 300);
+  });
 
   verificarSessao();
 </script>

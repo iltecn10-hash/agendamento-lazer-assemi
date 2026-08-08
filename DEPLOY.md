@@ -141,10 +141,56 @@ ela só aparece nos REGISTROS (logs) do sistema.
    abaixo sobre como redefinir.
 
 5. Acesse https://SEU-ENDERECO.onrender.com/admin e faça login com
-   usuário "admin" e essa senha. Depois de entrar, procure trocar a
-   senha assim que possível (por enquanto, essa troca precisa ser
-   pedida ao desenvolvedor — funcionalidade de "Minha conta" pode
-   ser adicionada depois se quiser).
+   usuário "admin" e essa senha. Depois de entrar, clique em "Minha
+   conta" no topo da página e troque a senha assim que possível.
+
+
+PASSO 5 — AVISO AUTOMÁTICO NO WHATSAPP (OPCIONAL, RECOMENDADO)
+--------------------------------------------------------------------
+Isso faz a secretaria receber um aviso automático no WhatsApp toda
+vez que um associado fizer um pedido novo. Leva uns 5 minutos, e é
+gratuito. Se pular esse passo, o sistema funciona normalmente do
+mesmo jeito — só não manda esse aviso automático.
+
+1. No WhatsApp do celular da secretaria, adicione este número como
+   contato:  +34 621 331 709  (nome: "CallMeBot" ou qualquer nome)
+
+   Atenção: esse número pode mudar de vez em quando. Se não der
+   certo, confira o número atualizado em https://www.callmebot.com
+   (procure "WhatsApp API" no site).
+
+2. Mande uma mensagem de texto pra esse contato, exatamente assim:
+
+     I allow callmebot to send me messages
+
+3. Em alguns segundos, o CallMeBot responde com uma mensagem
+   contendo sua "API Key" (um número, tipo: 123456). Anote esse
+   número.
+
+4. Volte no Render, no seu serviço → aba "Environment" → adicione
+   mais duas variáveis (do mesmo jeito que fez com as do Turso no
+   Passo 3):
+
+     Chave: CALLMEBOT_PHONE
+     Valor: o número de telefone da secretaria com código do país,
+            só números, sem espaços nem símbolos.
+            Exemplo: 5594999998888
+
+     Chave: CALLMEBOT_APIKEY
+     Valor: (a API Key que o CallMeBot te mandou no passo 3)
+
+5. Salve — o Render reinicia sozinho o sistema com a nova
+   configuração (leva 1-2 minutos).
+
+Pronto! A partir de agora, toda vez que alguém pedir uma reserva
+pelo site público, esse número do WhatsApp recebe um aviso
+automático. Não precisa fazer nada além disso.
+
+Observação: o CallMeBot é um serviço de terceiros, gratuito para uso
+pessoal/baixo volume — não tem relação com a Meta/WhatsApp oficial.
+Funciona bem para esse tipo de aviso interno, mas tem limite de
+mensagens por dia (raramente um problema para o volume de pedidos
+de uma associação).
 
 
 COMO FUNCIONA NO DIA A DIA
@@ -184,6 +230,20 @@ automaticamente, sem precisar configurar nada manualmente.
 
 DÚVIDAS FREQUENTES
 -----------------------
+- "Configurei o CallMeBot mas o aviso não chega no WhatsApp" →
+  confira se as duas variáveis (CALLMEBOT_PHONE e CALLMEBOT_APIKEY)
+  foram salvas certinho no Render, sem espaços a mais. O número de
+  telefone deve ser só dígitos com código do país (ex: 5594999998888,
+  sem "+", sem espaço, sem traço). Se ainda não funcionar, tente
+  refazer a autorização no WhatsApp (passo 1-3) — o CallMeBot às
+  vezes expira a autorização depois de um tempo sem uso.
+
+- "O botão 'Avisar no WhatsApp' abre uma conversa em branco" →
+  o telefone que o associado digitou no formulário pode estar num
+  formato estranho (com letras, faltando números). O sistema tenta
+  corrigir automaticamente adicionando o "55" do Brasil, mas não
+  consegue validar se o número em si está certo.
+
 - "Perdi a senha inicial do admin e não consigo mais entrar" →
   Isso precisa ser corrigido diretamente no banco de dados (Turso).
   Peça ajuda ao desenvolvedor, ou: no painel do Turso, procure uma
