@@ -241,6 +241,18 @@ cada, e o passo a passo escrito de cada função. Os vídeos ficam na
 pasta public/videos e usam só dados fictícios.
 
 
+MANTER O SISTEMA ACORDADO (INICIALIZAÇÃO RÁPIDA)
+--------------------------------------------------
+O arquivo .github/workflows/manter-acordado.yml faz o GitHub acessar o
+sistema a cada 10 minutos, das 6h às 23h (Brasília). Assim o Render não
+"dorme" no horário de uso e a página abre na hora. De madrugada ele
+dorme normalmente (o primeiro acesso depois das 23h ainda pode demorar).
+Para acompanhar: GitHub → repositório → aba "Actions".
+Para desligar: Actions → "Manter sistema acordado" → "Disable workflow".
+Obs.: o GitHub pausa esse robô se o repositório ficar 60 dias sem
+nenhuma alteração; ele manda um e-mail avisando, e basta reativar.
+
+
 SOBRE O PLANO GRATUITO DO RENDER — UM DETALHE IMPORTANTE
 --------------------------------------------------------------
 No plano grátis, o sistema "dorme" depois de 15 minutos sem
