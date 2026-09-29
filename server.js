@@ -69,6 +69,39 @@ async function migrar() {
       valor TEXT
     )
   `);
+
+  // Módulo de usuários: perfil (admin = gerencia usuários / secretaria = só agendamentos)
+  // e ativo (1 = pode entrar, 0 = acesso bloqueado). Contas que já existiam viram "admin".
+  const cols = await db.execute('PRAGMA table_info(admins)');
+  const nomes = cols.rows.map(c => c.name);
+  if (!nomes.includes('perfil')) {
+    await db.execute("ALTER TABLE admins ADD COLUMN perfil TEXT NOT NULL DEFAULT 'admin'");
+  }
+  if (!nomes.includes('ativo')) {
+    await db.execute('ALTER TABLE admins ADD COLUMN ativo INTEGER NOT NULL DEFAULT 1');
+  }
+}
+
+const PERFIS = ['admin', 'secretaria'];
+const USERNAME_REGEX = /^[a-z0-9._-]{3,30}$/;
+
+function usuarioPublico(u) {
+  return {
+    id: Number(u.id),
+    username: u.username,
+    nome: u.nome,
+    perfil: u.perfil || 'admin',
+    ativo: Number(u.ativo) === 1,
+    created_at: u.created_at,
+  };
+}
+
+async function contarAdminsAtivos(excetoId) {
+  const r = await db.execute({
+    sql: "SELECT COUNT(*) AS c FROM admins WHERE perfil = 'admin' AND ativo = 1 AND id != ?",
+    args: [excetoId || 0],
+  });
+  return Number(r.rows[0].c);
 }
 
 async function garantirAdmin() {
@@ -150,8 +183,23 @@ async function start() {
     loginAttempts.set(key, rec);
   }
 
-  function requireAdmin(req, res, next) {
+  // Confere a cada acesso se o usuário ainda existe e está ativo — assim, quem for
+  // desativado ou excluído perde o acesso na hora, mesmo já estando logado.
+  async function requireAdmin(req, res, next) {
     if (!req.session.admin) return res.status(401).json({ error: 'Não autenticado.' });
+    try {
+      const r = await db.execute({ sql: 'SELECT * FROM admins WHERE id = ?', args: [req.session.admin.id] });
+      const u = r.rows[0];
+      if (!u || Number(u.ativo) !== 1) {
+        return req.session.destroy(() => res.status(401).json({ error: 'Acesso encerrado. Fale com o administrador.' }));
+      }
+      req.session.admin = { id: Number(u.id), username: u.username, nome: u.nome, perfil: u.perfil || 'admin' };
+      next();
+    } catch (e) { next(e); }
+  }
+
+  function requireGestor(req, res, next) {
+    if (req.session.admin.perfil !== 'admin') return res.status(403).json({ error: 'Apenas administradores podem gerenciar usuários.' });
     next();
   }
 
@@ -182,8 +230,11 @@ async function start() {
       registerFailure(key);
       return res.status(401).json({ error: 'Usuário ou senha inválidos.' });
     }
+    if (Number(user.ativo) !== 1) {
+      return res.status(403).json({ error: 'Este usuário está desativado. Fale com o administrador.' });
+    }
     loginAttempts.delete(key);
-    req.session.admin = { id: user.id, username: user.username, nome: user.nome };
+    req.session.admin = { id: Number(user.id), username: user.username, nome: user.nome, perfil: user.perfil || 'admin' };
     res.json({ admin: req.session.admin });
   });
 
@@ -201,6 +252,82 @@ async function start() {
     if (!user || !bcrypt.compareSync(senhaAtual || '', user.password_hash)) return res.status(401).json({ error: 'Senha atual incorreta.' });
     const hash = bcrypt.hashSync(novaSenha, 12);
     await db.execute({ sql: 'UPDATE admins SET password_hash = ? WHERE id = ?', args: [hash, user.id] });
+    res.json({ ok: true });
+  });
+
+  // --- Usuários do painel (só perfil "admin") ---
+  app.get('/api/usuarios', requireAdmin, requireGestor, async (req, res) => {
+    const r = await db.execute('SELECT * FROM admins ORDER BY ativo DESC, nome COLLATE NOCASE');
+    res.json({ usuarios: r.rows.map(usuarioPublico) });
+  });
+
+  app.post('/api/usuarios', requireAdmin, requireGestor, async (req, res) => {
+    const b = req.body || {};
+    const nome = String(b.nome || '').trim();
+    const username = String(b.username || '').toLowerCase().trim();
+    const senha = String(b.senha || '');
+    const perfil = PERFIS.includes(b.perfil) ? b.perfil : 'secretaria';
+    const errors = {};
+    if (!nome) errors.nome = 'Informe o nome.';
+    if (!USERNAME_REGEX.test(username)) errors.username = 'Use de 3 a 30 caracteres: letras minúsculas, números, ponto, hífen ou _. Sem espaços.';
+    if (senha.length < 6) errors.senha = 'A senha deve ter ao menos 6 caracteres.';
+    if (Object.keys(errors).length) return res.status(400).json({ errors });
+
+    const existe = await db.execute({ sql: 'SELECT id FROM admins WHERE username = ?', args: [username] });
+    if (existe.rows.length) return res.status(409).json({ errors: { username: 'Já existe um usuário com esse login.' } });
+
+    await db.execute({
+      sql: 'INSERT INTO admins (username, password_hash, nome, perfil, ativo) VALUES (?, ?, ?, ?, 1)',
+      args: [username, bcrypt.hashSync(senha, 12), nome, perfil],
+    });
+    res.status(201).json({ ok: true });
+  });
+
+  app.put('/api/usuarios/:id', requireAdmin, requireGestor, async (req, res) => {
+    const id = Number(req.params.id);
+    const r = await db.execute({ sql: 'SELECT * FROM admins WHERE id = ?', args: [id] });
+    const u = r.rows[0];
+    if (!u) return res.status(404).json({ error: 'Usuário não encontrado.' });
+
+    const b = req.body || {};
+    const nome = b.nome !== undefined ? String(b.nome).trim() : u.nome;
+    const perfil = b.perfil !== undefined ? b.perfil : (u.perfil || 'admin');
+    const ativo = b.ativo !== undefined ? (b.ativo ? 1 : 0) : Number(u.ativo);
+    if (!nome) return res.status(400).json({ error: 'Informe o nome.' });
+    if (!PERFIS.includes(perfil)) return res.status(400).json({ error: 'Perfil inválido.' });
+
+    const ehVoceMesmo = id === req.session.admin.id;
+    if (ehVoceMesmo && (ativo !== 1 || perfil !== 'admin')) {
+      return res.status(400).json({ error: 'Você não pode desativar nem rebaixar a sua própria conta.' });
+    }
+    const deixaDeSerAdminAtivo = (u.perfil || 'admin') === 'admin' && Number(u.ativo) === 1 && (perfil !== 'admin' || ativo !== 1);
+    if (deixaDeSerAdminAtivo && (await contarAdminsAtivos(id)) === 0) {
+      return res.status(400).json({ error: 'É preciso manter pelo menos um administrador ativo.' });
+    }
+
+    await db.execute({ sql: 'UPDATE admins SET nome = ?, perfil = ?, ativo = ? WHERE id = ?', args: [nome, perfil, ativo, id] });
+    res.json({ ok: true });
+  });
+
+  app.post('/api/usuarios/:id/senha', requireAdmin, requireGestor, async (req, res) => {
+    const id = Number(req.params.id);
+    const novaSenha = String((req.body || {}).novaSenha || '');
+    if (novaSenha.length < 6) return res.status(400).json({ error: 'A nova senha deve ter ao menos 6 caracteres.' });
+    const r = await db.execute({ sql: 'UPDATE admins SET password_hash = ? WHERE id = ?', args: [bcrypt.hashSync(novaSenha, 12), id] });
+    if (!r.rowsAffected) return res.status(404).json({ error: 'Usuário não encontrado.' });
+    res.json({ ok: true });
+  });
+
+  app.delete('/api/usuarios/:id', requireAdmin, requireGestor, async (req, res) => {
+    const id = Number(req.params.id);
+    if (id === req.session.admin.id) return res.status(400).json({ error: 'Você não pode excluir a sua própria conta.' });
+    const r = await db.execute({ sql: 'SELECT * FROM admins WHERE id = ?', args: [id] });
+    const u = r.rows[0];
+    if (!u) return res.status(404).json({ error: 'Usuário não encontrado.' });
+    if ((u.perfil || 'admin') === 'admin' && Number(u.ativo) === 1 && (await contarAdminsAtivos(id)) === 0) {
+      return res.status(400).json({ error: 'É preciso manter pelo menos um administrador ativo.' });
+    }
+    await db.execute({ sql: 'DELETE FROM admins WHERE id = ?', args: [id] });
     res.json({ ok: true });
   });
 

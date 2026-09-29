@@ -207,6 +207,31 @@ COMO FUNCIONA NO DIA A DIA
 
 • Pedidos ficam pendentes até alguém da secretaria decidir.
 
+• Cada aprovação ou recusa mostra o nome de quem decidiu.
+
+
+USUÁRIOS DO PAINEL (VÁRIAS PESSOAS COM LOGIN PRÓPRIO)
+-------------------------------------------------------
+Quem entra com perfil "Administrador" vê o botão "Usuários" no topo.
+Por ele é possível:
+
+• Cadastrar um novo usuário: nome, login, senha inicial e perfil.
+  Passe o login e a senha para a pessoa; ela pode trocar a senha
+  depois em "Minha conta".
+• Editar o nome e o perfil de um usuário.
+• Definir uma nova senha para quem esqueceu a sua.
+• Desativar (bloqueia o acesso na hora, mas mantém o cadastro) ou
+  reativar. Para quem saiu da secretaria, prefira "Desativar".
+• Excluir definitivamente.
+
+Perfis:
+• Administrador — agendamentos + gerenciar usuários.
+• Secretaria    — só agendamentos (aprovar, recusar, excluir, imprimir).
+
+Proteções: ninguém consegue desativar, rebaixar ou excluir a própria
+conta, e o sistema sempre mantém pelo menos um administrador ativo.
+A conta "admin" que já existia continua funcionando como Administrador.
+
 
 SOBRE O PLANO GRATUITO DO RENDER — UM DETALHE IMPORTANTE
 --------------------------------------------------------------

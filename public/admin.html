@@ -79,6 +79,33 @@
   .toast { position: fixed; bottom: 20px; right: 20px; background: var(--teal-dark); color: #fff; padding: 11px 16px; border-radius: 5px; font-size: 13px; box-shadow: 0 8px 20px rgba(0,0,0,0.2); border-left: 4px solid var(--gold); }
   .toast.erro { background: var(--danger); border-left-color: #fff; }
   .hidden { display: none !important; }
+
+  /* Usuários */
+  #btnUsuarios { background: var(--gold); border: 1px solid var(--gold); color: var(--teal-dark); border-radius: 5px; padding: 7px 12px; cursor: pointer; font-size: 12.5px; font-weight: 600; }
+  #btnUsuarios:hover { filter: brightness(1.06); }
+  .quem { color: #C9D8D2; font-size: 12px; margin-right: 4px; }
+  .modal.largo { max-width: 760px; max-height: calc(100vh - 40px); overflow-y: auto; }
+  .modal-topo { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .modal-topo h3 { margin: 0; }
+  .selo-admin { background: var(--gold-soft); color: var(--rust); }
+  .selo-secretaria { background: #E4EEF0; color: #2B5561; }
+  .selo-inativo { background: #eee; color: #888; }
+  tr.inativo td { color: #999; }
+  .ajuda { font-size: 11.5px; color: var(--ink-soft); margin-top: 4px; }
+  .aviso-perfil { font-size: 12px; color: var(--ink-soft); background: var(--paper-alt); border-radius: 5px; padding: 8px 10px; margin-top: 12px; line-height: 1.5; }
+  @media (max-width: 560px) {
+    .quem { display: none; }
+    .brand p { display: none; }
+    #btnSair, #btnMinhaConta, #btnUsuarios { padding: 6px 9px; font-size: 12px; }
+    .modal.largo { padding: 16px; }
+    .tabela-usuarios thead { display: none; }
+    .tabela-usuarios, .tabela-usuarios tbody, .tabela-usuarios tr { display: block; width: 100%; }
+    .tabela-usuarios tr { border-top: 1px solid var(--line); padding: 10px 12px; }
+    .tabela-usuarios tr:first-child { border-top: none; }
+    .tabela-usuarios td { display: inline-block; border: none; padding: 2px 6px 2px 0; }
+    .tabela-usuarios td:first-child { display: block; }
+    .tabela-usuarios td:last-child { display: block; padding-top: 8px; }
+  }
 </style>
 </head>
 <body>
@@ -92,6 +119,8 @@
       </div>
     </div>
     <div class="header-actions">
+      <span class="quem" id="quemLogado"></span>
+      <button id="btnUsuarios" style="display:none;">Usuários</button>
       <button id="btnMinhaConta" style="display:none;">Minha conta</button>
       <button id="btnSair" style="display:none;">Sair</button>
     </div>
@@ -189,11 +218,85 @@
   </div>
 </div>
 
+<div class="overlay hidden" id="overlayUsuarios">
+  <div class="modal largo">
+    <div class="modal-topo">
+      <h3>Usuários do painel</h3>
+      <button type="button" class="primario" id="btnNovoUsuario">+ Novo usuário</button>
+    </div>
+    <div style="overflow-x:auto;">
+      <table class="tabela-usuarios">
+        <thead><tr><th>Nome</th><th>Login</th><th>Perfil</th><th>Situação</th><th>Ações</th></tr></thead>
+        <tbody id="corpoUsuarios"></tbody>
+      </table>
+    </div>
+    <div class="aviso-perfil">
+      <b>Administrador:</b> vê e aprova agendamentos e também cadastra, edita e desativa usuários.<br>
+      <b>Secretaria:</b> vê e aprova agendamentos, mas não mexe em usuários.
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="ghost" id="btnFecharUsuarios">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay hidden" id="overlayUsuarioForm">
+  <div class="modal">
+    <h3 id="usuarioFormTitulo">Novo usuário</h3>
+    <div class="campo">
+      <label for="uNome">Nome</label>
+      <input type="text" id="uNome" placeholder="Ex.: Maria da Silva" />
+      <div class="erro" id="erroUNome"></div>
+    </div>
+    <div class="campo">
+      <label for="uLogin">Login (usuário para entrar)</label>
+      <input type="text" id="uLogin" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="Ex.: maria" />
+      <div class="ajuda" id="ajudaLogin">Letras minúsculas, números, ponto ou hífen. Sem espaços.</div>
+      <div class="erro" id="erroULogin"></div>
+    </div>
+    <div class="campo" id="campoUSenha">
+      <label for="uSenha">Senha inicial (mínimo 6 caracteres)</label>
+      <input type="text" id="uSenha" autocapitalize="none" autocorrect="off" spellcheck="false" />
+      <div class="ajuda">Passe essa senha para a pessoa. Ela pode trocar depois em "Minha conta".</div>
+      <div class="erro" id="erroUSenha"></div>
+    </div>
+    <div class="campo">
+      <label for="uPerfil">Perfil</label>
+      <select id="uPerfil">
+        <option value="secretaria">Secretaria (só agendamentos)</option>
+        <option value="admin">Administrador (agendamentos + usuários)</option>
+      </select>
+    </div>
+    <div class="erro" id="erroUGeral"></div>
+    <div class="modal-footer">
+      <button type="button" class="ghost" id="btnCancelarUsuario">Cancelar</button>
+      <button type="button" class="primario" id="btnSalvarUsuario">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay hidden" id="overlaySenhaUsuario">
+  <div class="modal">
+    <h3>Definir nova senha</h3>
+    <p id="senhaUsuarioInfo" style="font-size: 13px; color: var(--ink-soft); margin-top: -6px;"></p>
+    <div class="campo">
+      <label for="suNova">Nova senha (mínimo 6 caracteres)</label>
+      <input type="text" id="suNova" autocapitalize="none" autocorrect="off" spellcheck="false" />
+    </div>
+    <div class="erro" id="erroSenhaUsuario"></div>
+    <div class="modal-footer">
+      <button type="button" class="ghost" id="btnCancelarSenhaUsuario">Cancelar</button>
+      <button type="button" class="primario" id="btnSalvarSenhaUsuario">Salvar senha</button>
+    </div>
+  </div>
+</div>
+
 <script>
   let anoAtual = new Date().getFullYear();
   let solicitacoes = [];
   let recusaAlvo = null;
   let excluirAlvo = null;
+  let eu = null;
 
   function toast(msg, tipo) {
     const t = document.createElement('div');
@@ -208,7 +311,12 @@
     return `${d}/${m}/${y}`;
   }
 
-  function mostrarPainel() {
+  function mostrarPainel(admin) {
+    eu = admin || null;
+    if (eu) {
+      document.getElementById('quemLogado').textContent = eu.nome;
+      document.getElementById('btnUsuarios').style.display = eu.perfil === 'admin' ? 'inline-block' : 'none';
+    }
     document.getElementById('areaLogin').classList.add('hidden');
     document.getElementById('areaPainel').classList.remove('hidden');
     document.getElementById('btnSair').style.display = 'inline-block';
@@ -219,7 +327,7 @@
 
   async function verificarSessao() {
     const res = await fetch('/api/me');
-    if (res.ok) mostrarPainel();
+    if (res.ok) { const data = await res.json(); mostrarPainel(data.admin); }
   }
 
   function montarSeletorAno() {
@@ -245,7 +353,7 @@
       });
       const data = await res.json();
       if (!res.ok) { document.getElementById('erroLogin').textContent = data.error || 'Erro ao entrar.'; return; }
-      mostrarPainel();
+      mostrarPainel(data.admin);
     } catch (err) {
       document.getElementById('erroLogin').textContent = 'Erro de conexão.';
     }
@@ -260,6 +368,7 @@
     const status = document.getElementById('filtroStatus').value;
     const ano = document.getElementById('filtroAno').value || anoAtual;
     const res = await fetch(`/api/solicitacoes?ano=${ano}&status=${status}`);
+    if (res.status === 401) { location.reload(); return; }
     if (!res.ok) { toast('Erro ao carregar solicitações.', 'erro'); return; }
     const data = await res.json();
     solicitacoes = data.solicitacoes;
@@ -292,7 +401,7 @@
           <div class="motivo">${escapeHtml(s.telefone || '')}${s.matricula ? ' · matrícula ' + escapeHtml(s.matricula) : ''}</div>
         </td>
         <td>${escapeHtml(s.finalidade)}${s.observacoes ? `<div class="motivo">${escapeHtml(s.observacoes)}</div>` : ''}${motivo}</td>
-        <td>${selo}</td>
+        <td>${selo}${s.status !== 'pendente' && s.aprovado_por ? `<div class="motivo">por ${escapeHtml(s.aprovado_por)}</div>` : ''}</td>
         <td><div class="acoes">${acoesAprovacao}${acoesWhatsApp}<button class="btn-icone btn-excluir" onclick="abrirExcluir(${s.id})">Excluir</button></div></td>
       </tr>`;
     }).join('');
@@ -433,6 +542,168 @@
     if (!printWindow) { toast('Pop-up bloqueado. Permita pop-ups para este site.', 'erro'); return; }
     printWindow.document.open(); printWindow.document.write(html); printWindow.document.close();
     setTimeout(() => { try { printWindow.focus(); printWindow.print(); } catch (e) {} }, 300);
+  });
+
+  // ---- Usuários (só administradores) ----
+  let usuarios = [];
+  let usuarioEditando = null;
+  let usuarioSenhaAlvo = null;
+  const PERFIL_ROTULO = { admin: 'ADMINISTRADOR', secretaria: 'SECRETARIA' };
+
+  async function carregarUsuarios() {
+    const res = await fetch('/api/usuarios');
+    if (res.status === 401) { location.reload(); return; }
+    const data = await res.json();
+    if (!res.ok) { toast(data.error || 'Erro ao carregar usuários.', 'erro'); return; }
+    usuarios = data.usuarios;
+    renderizarUsuarios();
+  }
+
+  function renderizarUsuarios() {
+    document.getElementById('corpoUsuarios').innerHTML = usuarios.map(u => {
+      const souEu = eu && u.id === eu.id;
+      const perfil = `<span class="selo selo-${u.perfil}">${PERFIL_ROTULO[u.perfil] || u.perfil}</span>`;
+      const situacao = u.ativo ? '<span class="selo selo-confirmado">ATIVO</span>' : '<span class="selo selo-inativo">DESATIVADO</span>';
+      const acoes = [
+        `<button class="btn-icone" onclick="abrirEditarUsuario(${u.id})">Editar</button>`,
+        `<button class="btn-icone" onclick="abrirSenhaUsuario(${u.id})">Nova senha</button>`,
+        souEu ? '' : (u.ativo
+          ? `<button class="btn-icone btn-recusar" onclick="alternarAtivo(${u.id}, false)">Desativar</button>`
+          : `<button class="btn-icone btn-aprovar" onclick="alternarAtivo(${u.id}, true)">Reativar</button>`),
+        souEu ? '' : `<button class="btn-icone btn-excluir" onclick="excluirUsuario(${u.id})">Excluir</button>`,
+      ].join('');
+      return `<tr class="${u.ativo ? '' : 'inativo'}">
+        <td><div class="nome-cel">${escapeHtml(u.nome)}${souEu ? ' <span class="motivo">(você)</span>' : ''}</div></td>
+        <td class="mono">${escapeHtml(u.username)}</td>
+        <td>${perfil}</td>
+        <td>${situacao}</td>
+        <td><div class="acoes">${acoes}</div></td>
+      </tr>`;
+    }).join('');
+  }
+
+  document.getElementById('btnUsuarios').addEventListener('click', () => {
+    document.getElementById('overlayUsuarios').classList.remove('hidden');
+    carregarUsuarios();
+  });
+  document.getElementById('btnFecharUsuarios').addEventListener('click', () => document.getElementById('overlayUsuarios').classList.add('hidden'));
+
+  function limparErrosUsuario() {
+    ['erroUNome', 'erroULogin', 'erroUSenha', 'erroUGeral'].forEach(id => document.getElementById(id).textContent = '');
+  }
+
+  document.getElementById('btnNovoUsuario').addEventListener('click', () => {
+    usuarioEditando = null;
+    limparErrosUsuario();
+    document.getElementById('usuarioFormTitulo').textContent = 'Novo usuário';
+    document.getElementById('uNome').value = '';
+    document.getElementById('uLogin').value = '';
+    document.getElementById('uLogin').disabled = false;
+    document.getElementById('ajudaLogin').textContent = 'Letras minúsculas, números, ponto ou hífen. Sem espaços.';
+    document.getElementById('uSenha').value = '';
+    document.getElementById('campoUSenha').classList.remove('hidden');
+    document.getElementById('uPerfil').value = 'secretaria';
+    document.getElementById('uPerfil').disabled = false;
+    document.getElementById('overlayUsuarioForm').classList.remove('hidden');
+    document.getElementById('uNome').focus();
+  });
+
+  function abrirEditarUsuario(id) {
+    usuarioEditando = usuarios.find(u => u.id === id);
+    if (!usuarioEditando) return;
+    limparErrosUsuario();
+    const souEu = eu && id === eu.id;
+    document.getElementById('usuarioFormTitulo').textContent = 'Editar usuário';
+    document.getElementById('uNome').value = usuarioEditando.nome;
+    document.getElementById('uLogin').value = usuarioEditando.username;
+    document.getElementById('uLogin').disabled = true;
+    document.getElementById('ajudaLogin').textContent = 'O login não pode ser alterado.';
+    document.getElementById('campoUSenha').classList.add('hidden');
+    document.getElementById('uPerfil').value = usuarioEditando.perfil;
+    document.getElementById('uPerfil').disabled = souEu;
+    document.getElementById('overlayUsuarioForm').classList.remove('hidden');
+  }
+
+  document.getElementById('btnCancelarUsuario').addEventListener('click', () => document.getElementById('overlayUsuarioForm').classList.add('hidden'));
+
+  document.getElementById('btnSalvarUsuario').addEventListener('click', async () => {
+    limparErrosUsuario();
+    const nome = document.getElementById('uNome').value.trim();
+    const perfil = document.getElementById('uPerfil').value;
+    let url, metodo, corpo;
+    if (usuarioEditando) {
+      url = `/api/usuarios/${usuarioEditando.id}`; metodo = 'PUT'; corpo = { nome, perfil };
+    } else {
+      url = '/api/usuarios'; metodo = 'POST';
+      corpo = { nome, perfil, username: document.getElementById('uLogin').value.trim().toLowerCase(), senha: document.getElementById('uSenha').value };
+    }
+    try {
+      const res = await fetch(url, { method: metodo, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(corpo) });
+      const data = await res.json();
+      if (!res.ok) {
+        const e = data.errors || {};
+        if (e.nome) document.getElementById('erroUNome').textContent = e.nome;
+        if (e.username) document.getElementById('erroULogin').textContent = e.username;
+        if (e.senha) document.getElementById('erroUSenha').textContent = e.senha;
+        if (data.error) document.getElementById('erroUGeral').textContent = data.error;
+        return;
+      }
+      toast(usuarioEditando ? 'Usuário atualizado.' : 'Usuário cadastrado.');
+      document.getElementById('overlayUsuarioForm').classList.add('hidden');
+      if (usuarioEditando && eu && usuarioEditando.id === eu.id) {
+        eu.nome = nome; document.getElementById('quemLogado').textContent = nome;
+      }
+      carregarUsuarios();
+    } catch (err) { document.getElementById('erroUGeral').textContent = 'Erro de conexão.'; }
+  });
+
+  async function alternarAtivo(id, ativo) {
+    const u = usuarios.find(x => x.id === id);
+    if (!u) return;
+    if (!ativo && !confirm(`Desativar ${u.nome}? A pessoa não vai mais conseguir entrar no painel.`)) return;
+    try {
+      const res = await fetch(`/api/usuarios/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ativo }) });
+      const data = await res.json();
+      if (!res.ok) { toast(data.error || 'Erro ao salvar.', 'erro'); return; }
+      toast(ativo ? 'Usuário reativado.' : 'Usuário desativado.');
+      carregarUsuarios();
+    } catch (e) { toast('Erro de conexão.', 'erro'); }
+  }
+
+  async function excluirUsuario(id) {
+    const u = usuarios.find(x => x.id === id);
+    if (!u) return;
+    if (!confirm(`Excluir o usuário ${u.nome} (${u.username})? Esta ação não pode ser desfeita.\n\nDica: se for só temporário, use "Desativar".`)) return;
+    try {
+      const res = await fetch(`/api/usuarios/${id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (!res.ok) { toast(data.error || 'Erro ao excluir.', 'erro'); return; }
+      toast('Usuário excluído.');
+      carregarUsuarios();
+    } catch (e) { toast('Erro de conexão.', 'erro'); }
+  }
+
+  function abrirSenhaUsuario(id) {
+    usuarioSenhaAlvo = usuarios.find(u => u.id === id);
+    if (!usuarioSenhaAlvo) return;
+    document.getElementById('senhaUsuarioInfo').textContent = `${usuarioSenhaAlvo.nome} (${usuarioSenhaAlvo.username})`;
+    document.getElementById('suNova').value = '';
+    document.getElementById('erroSenhaUsuario').textContent = '';
+    document.getElementById('overlaySenhaUsuario').classList.remove('hidden');
+  }
+  document.getElementById('btnCancelarSenhaUsuario').addEventListener('click', () => document.getElementById('overlaySenhaUsuario').classList.add('hidden'));
+  document.getElementById('btnSalvarSenhaUsuario').addEventListener('click', async () => {
+    const novaSenha = document.getElementById('suNova').value;
+    const erroEl = document.getElementById('erroSenhaUsuario');
+    erroEl.textContent = '';
+    if (novaSenha.length < 6) { erroEl.textContent = 'A nova senha deve ter ao menos 6 caracteres.'; return; }
+    try {
+      const res = await fetch(`/api/usuarios/${usuarioSenhaAlvo.id}/senha`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ novaSenha }) });
+      const data = await res.json();
+      if (!res.ok) { erroEl.textContent = data.error || 'Erro ao salvar a senha.'; return; }
+      toast('Senha definida. Passe a nova senha para a pessoa.');
+      document.getElementById('overlaySenhaUsuario').classList.add('hidden');
+    } catch (e) { erroEl.textContent = 'Erro de conexão.'; }
   });
 
   verificarSessao();
