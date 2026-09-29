@@ -1,0 +1,4 @@
+node_modules/
+local-dev.db
+SENHA-INICIAL-ADMIN.txt
+*.log
