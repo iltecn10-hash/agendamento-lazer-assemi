@@ -233,6 +233,14 @@ conta, e o sistema sempre mantém pelo menos um administrador ativo.
 A conta "admin" que já existia continua funcionando como Administrador.
 
 
+MANUAL COM VIDEOAULAS
+-----------------------
+O endereço /ajuda (botão "Ajuda" no topo do painel e link na tela de
+login) abre o manual com 7 videoaulas narradas, de cerca de 1 minuto
+cada, e o passo a passo escrito de cada função. Os vídeos ficam na
+pasta public/videos e usam só dados fictícios.
+
+
 SOBRE O PLANO GRATUITO DO RENDER — UM DETALHE IMPORTANTE
 --------------------------------------------------------------
 No plano grátis, o sistema "dorme" depois de 15 minutos sem

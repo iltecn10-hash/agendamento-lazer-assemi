@@ -22,7 +22,8 @@
   .brand p { margin: 1px 0 0; color: #C9D8D2; font-size: 11.5px; }
   .header-actions { display: flex; gap: 8px; align-items: center; }
   #btnSair, #btnMinhaConta { background: transparent; border: 1px solid rgba(255,255,255,0.3); color: #EFE9D8; border-radius: 5px; padding: 7px 12px; cursor: pointer; font-size: 12.5px; }
-  #btnSair:hover, #btnMinhaConta:hover { background: rgba(255,255,255,0.1); }
+  #btnSair:hover, #btnMinhaConta:hover, #btnAjuda:hover { background: rgba(255,255,255,0.1); }
+  #btnAjuda { border: 1px solid rgba(255,255,255,0.3); color: #EFE9D8; border-radius: 5px; padding: 7px 12px; font-size: 12.5px; text-decoration: none; }
   main { max-width: 1000px; margin: 0 auto; padding: 22px 16px 60px; }
 
   /* Login */
@@ -96,7 +97,7 @@
   @media (max-width: 560px) {
     .quem { display: none; }
     .brand p { display: none; }
-    #btnSair, #btnMinhaConta, #btnUsuarios { padding: 6px 9px; font-size: 12px; }
+    #btnSair, #btnMinhaConta, #btnUsuarios, #btnAjuda { padding: 6px 9px; font-size: 12px; }
     .modal.largo { padding: 16px; }
     .tabela-usuarios thead { display: none; }
     .tabela-usuarios, .tabela-usuarios tbody, .tabela-usuarios tr { display: block; width: 100%; }
@@ -120,6 +121,7 @@
     </div>
     <div class="header-actions">
       <span class="quem" id="quemLogado"></span>
+      <a id="btnAjuda" href="/ajuda" target="_blank" rel="noopener">Ajuda</a>
       <button id="btnUsuarios" style="display:none;">Usuários</button>
       <button id="btnMinhaConta" style="display:none;">Minha conta</button>
       <button id="btnSair" style="display:none;">Sair</button>
@@ -142,6 +144,7 @@
       </div>
       <div class="erro" id="erroLogin" style="margin-bottom: 10px;"></div>
       <button type="submit" class="primario largo">Entrar</button>
+      <p class="sub" style="margin: 16px 0 0;"><a href="/ajuda" target="_blank" rel="noopener" style="color: var(--teal);">Precisa de ajuda? Veja o manual com vídeos</a></p>
     </form>
   </div>
 
@@ -236,6 +239,17 @@
     </div>
     <div class="modal-footer">
       <button type="button" class="ghost" id="btnFecharUsuarios">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay hidden" id="overlayConfirmar">
+  <div class="modal">
+    <h3 id="confirmarTitulo">Confirmar</h3>
+    <p id="confirmarTexto" style="font-size: 13px; color: var(--ink-soft); line-height: 1.5; white-space: pre-line;"></p>
+    <div class="modal-footer">
+      <button type="button" class="ghost" id="btnConfirmarNao">Cancelar</button>
+      <button type="button" class="primario" id="btnConfirmarSim" style="background: var(--danger);">Confirmar</button>
     </div>
   </div>
 </div>
@@ -544,6 +558,22 @@
     setTimeout(() => { try { printWindow.focus(); printWindow.print(); } catch (e) {} }, 300);
   });
 
+  // ---- Janela de confirmação do próprio painel ----
+  function confirmar(titulo, texto, rotuloBotao) {
+    return new Promise(resolve => {
+      const ov = document.getElementById('overlayConfirmar');
+      document.getElementById('confirmarTitulo').textContent = titulo;
+      document.getElementById('confirmarTexto').textContent = texto;
+      document.getElementById('btnConfirmarSim').textContent = rotuloBotao || 'Confirmar';
+      const fim = (r) => { ov.classList.add('hidden'); sim.onclick = null; nao.onclick = null; resolve(r); };
+      const sim = document.getElementById('btnConfirmarSim');
+      const nao = document.getElementById('btnConfirmarNao');
+      sim.onclick = () => fim(true);
+      nao.onclick = () => fim(false);
+      ov.classList.remove('hidden');
+    });
+  }
+
   // ---- Usuários (só administradores) ----
   let usuarios = [];
   let usuarioEditando = null;
@@ -660,7 +690,7 @@
   async function alternarAtivo(id, ativo) {
     const u = usuarios.find(x => x.id === id);
     if (!u) return;
-    if (!ativo && !confirm(`Desativar ${u.nome}? A pessoa não vai mais conseguir entrar no painel.`)) return;
+    if (!ativo && !(await confirmar('Desativar usuário', `Desativar ${u.nome}? A pessoa não vai mais conseguir entrar no painel.`, 'Desativar'))) return;
     try {
       const res = await fetch(`/api/usuarios/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ativo }) });
       const data = await res.json();
@@ -673,7 +703,7 @@
   async function excluirUsuario(id) {
     const u = usuarios.find(x => x.id === id);
     if (!u) return;
-    if (!confirm(`Excluir o usuário ${u.nome} (${u.username})? Esta ação não pode ser desfeita.\n\nDica: se for só temporário, use "Desativar".`)) return;
+    if (!(await confirmar('Excluir usuário', `Excluir o usuário ${u.nome} (${u.username})? Esta ação não pode ser desfeita.\n\nDica: se for só temporário, use "Desativar".`, 'Excluir'))) return;
     try {
       const res = await fetch(`/api/usuarios/${id}`, { method: 'DELETE' });
       const data = await res.json();

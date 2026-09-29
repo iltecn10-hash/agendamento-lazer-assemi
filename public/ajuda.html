@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ILTECN › Gestão Sindical — Manual do Painel</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Lora:wght@600;700&family=Inter:wght@400;500;600;700&display=swap');
+  :root {
+    --ink: #1E3A34; --ink-soft: #3E5750; --paper: #F5F4EE; --paper-alt: #ECEAE0;
+    --line: #D3CFC0; --teal: #145C52; --teal-dark: #0E4238; --gold: #B8912F;
+    --gold-soft: #EFE3C0; --rust: #9C5233;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; font-family: 'Inter', sans-serif; background: var(--paper); color: var(--ink); line-height: 1.5; }
+  header { background: var(--teal-dark); padding: 16px 16px 14px; border-bottom: 4px solid var(--gold); }
+  .brand { max-width: 900px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .brand-left { display: flex; align-items: center; gap: 12px; }
+  .seal { width: 38px; height: 38px; border-radius: 50%; background: var(--gold); color: var(--teal-dark);
+    display: flex; align-items: center; justify-content: center; font-family: 'Lora', serif; font-weight: 700; font-size: 16px; flex-shrink: 0; }
+  .brand h1 { font-family: 'Lora', serif; color: #FBF9F2; margin: 0; font-size: 17px; letter-spacing: 0.03em; }
+  .brand p { margin: 1px 0 0; color: #C9D8D2; font-size: 11.5px; }
+  .voltar { border: 1px solid rgba(255,255,255,0.3); color: #EFE9D8; border-radius: 5px; padding: 7px 12px; font-size: 12.5px; text-decoration: none; white-space: nowrap; }
+  .voltar:hover { background: rgba(255,255,255,0.1); }
+  main { max-width: 900px; margin: 0 auto; padding: 26px 16px 60px; }
+
+  .intro h2 { font-family: 'Lora', serif; color: var(--teal-dark); font-size: 26px; margin: 0 0 6px; }
+  .intro p { margin: 0 0 18px; color: var(--ink-soft); font-size: 14.5px; max-width: 640px; }
+
+  .indice { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; margin: 0 0 34px; padding: 0; list-style: none; }
+  .indice a { display: flex; gap: 12px; align-items: center; background: #fff; border: 1px solid var(--line); border-radius: 8px;
+    padding: 12px 14px; text-decoration: none; color: var(--ink); transition: border-color .15s, transform .15s; }
+  .indice a:hover { border-color: var(--gold); transform: translateY(-1px); }
+  .num { width: 30px; height: 30px; border-radius: 50%; background: var(--gold-soft); color: var(--rust); font-weight: 700; font-size: 13px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .indice .t { font-size: 13.5px; font-weight: 600; line-height: 1.3; }
+  .indice .d { font-size: 11.5px; color: var(--ink-soft); }
+
+  .grupo { font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-soft); font-weight: 700; margin: 0 0 10px; }
+
+  .aula { background: #fff; border: 1px solid var(--line); border-radius: 10px; margin-bottom: 26px; overflow: hidden; scroll-margin-top: 12px; }
+  .aula-topo { padding: 16px 18px 12px; display: flex; gap: 12px; align-items: flex-start; }
+  .aula h3 { font-family: 'Lora', serif; color: var(--teal-dark); margin: 3px 0 2px; font-size: 19px; line-height: 1.3; }
+  .meta { font-size: 12px; color: var(--ink-soft); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .selo { font-size: 10.5px; font-weight: 700; padding: 2px 8px; border-radius: 8px; letter-spacing: 0.03em; background: var(--gold-soft); color: var(--rust); }
+  video { display: block; width: 100%; aspect-ratio: 1024 / 608; background: var(--teal-dark); }
+  .passos { padding: 14px 18px 18px 18px; }
+  .passos summary { cursor: pointer; font-weight: 600; font-size: 13.5px; color: var(--teal); }
+  .passos ol { margin: 10px 0 0; padding-left: 22px; font-size: 14px; }
+  .passos li { margin: 4px 0; }
+
+  .duvidas { background: var(--paper-alt); border-radius: 10px; padding: 18px 20px; margin-top: 34px; }
+  .duvidas h2 { font-family: 'Lora', serif; color: var(--teal-dark); font-size: 19px; margin: 0 0 10px; }
+  .duvidas dt { font-weight: 600; font-size: 14px; margin-top: 12px; }
+  .duvidas dd { margin: 3px 0 0; font-size: 14px; color: var(--ink-soft); }
+  footer { text-align: center; font-size: 11.5px; color: var(--ink-soft); padding: 10px 16px 30px; }
+  @media (max-width: 560px) {
+    .brand p { display: none; }
+    .intro h2 { font-size: 22px; }
+    .aula-topo { padding: 14px 14px 10px; }
+    .passos { padding: 12px 14px 16px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <div class="brand-left">
+      <div class="seal">I</div>
+      <div>
+        <h1>ILTECN</h1>
+        <p>› Gestão Sindical · Manual do Painel</p>
+      </div>
+    </div>
+    <a class="voltar" href="/admin">← Voltar ao painel</a>
+  </div>
+</header>
+
+<main>
+  <section class="intro">
+    <h2>Manual com videoaulas</h2>
+    <p>Aulas curtas, de 1 a 2 minutos, mostrando cada função do painel de agendamento do espaço de lazer. Os nomes e datas dos vídeos são apenas exemplos. Abaixo de cada vídeo há o passo a passo por escrito.</p>
+  </section>
+
+  <p class="grupo">Para toda a secretaria</p>
+  <ul class="indice">
+    <li><a href="#aula1"><span class="num">1</span><span><span class="t">Entrar no painel e trocar sua senha</span><br><span class="d">1 min 16 s</span></span></a></li>
+    <li><a href="#aula2"><span class="num">2</span><span><span class="t">Aprovar um pedido e avisar pelo WhatsApp</span><br><span class="d">1 min 8 s</span></span></a></li>
+    <li><a href="#aula3"><span class="num">3</span><span><span class="t">Recusar um pedido</span><br><span class="d">58 s</span></span></a></li>
+    <li><a href="#aula4"><span class="num">4</span><span><span class="t">Filtrar, imprimir e excluir pedidos</span><br><span class="d">1 min 15 s</span></span></a></li>
+    <li><a href="#aula5"><span class="num">5</span><span><span class="t">Como o associado faz o pedido</span><br><span class="d">1 min 2 s</span></span></a></li>
+  </ul>
+  <p class="grupo">Só para administradores</p>
+  <ul class="indice">
+    <li><a href="#aula6"><span class="num">6</span><span><span class="t">Cadastrar um novo usuário</span><br><span class="d">1 min 11 s</span></span></a></li>
+    <li><a href="#aula7"><span class="num">7</span><span><span class="t">Editar, trocar senha, desativar e excluir usuários</span><br><span class="d">1 min 11 s</span></span></a></li>
+  </ul>
+
+  <article class="aula" id="aula1">
+    <div class="aula-topo"><span class="num">1</span><div><h3>Entrar no painel e trocar sua senha</h3><div class="meta">1 min 16 s</div></div></div>
+    <video controls playsinline preload="none" poster="/videos/aula1-entrar-e-trocar-senha.jpg" src="/videos/aula1-entrar-e-trocar-senha.mp4"></video>
+    <details class="passos"><summary>Ver o passo a passo por escrito</summary><ol>
+      <li>Abra o endereço do painel (termina com <b>/admin</b>).</li>
+      <li>Digite o seu <b>usuário</b> e a sua <b>senha</b> e toque em <b>Entrar</b>.</li>
+      <li>Para trocar a senha, toque em <b>Minha conta</b>, no topo.</li>
+      <li>Digite a senha atual e a nova senha duas vezes (mínimo 6 caracteres).</li>
+      <li>Toque em <b>Salvar nova senha</b>.</li>
+      <li>Ao terminar, toque em <b>Sair</b>, principalmente em aparelhos compartilhados.</li>
+    </ol></details>
+  </article>
+
+  <article class="aula" id="aula2">
+    <div class="aula-topo"><span class="num">2</span><div><h3>Aprovar um pedido e avisar pelo WhatsApp</h3><div class="meta">1 min 8 s</div></div></div>
+    <video controls playsinline preload="none" poster="/videos/aula2-aprovar-pedido.jpg" src="/videos/aula2-aprovar-pedido.mp4"></video>
+    <details class="passos"><summary>Ver o passo a passo por escrito</summary><ol>
+      <li>Ao entrar, a lista mostra os pedidos <b>pendentes</b>.</li>
+      <li>Toque em <b>Aprovar</b> na linha do pedido.</li>
+      <li>Mude o filtro para <b>Confirmados</b> para ver o pedido aprovado e quem aprovou.</li>
+      <li>Toque em <b>Avisar no WhatsApp</b>: a mensagem de confirmação abre pronta, é só enviar.</li>
+      <li>O sistema não permite confirmar dois pedidos para a mesma data.</li>
+    </ol></details>
+  </article>
+
+  <article class="aula" id="aula3">
+    <div class="aula-topo"><span class="num">3</span><div><h3>Recusar um pedido</h3><div class="meta">58 s</div></div></div>
+    <video controls playsinline preload="none" poster="/videos/aula3-recusar-pedido.jpg" src="/videos/aula3-recusar-pedido.mp4"></video>
+    <details class="passos"><summary>Ver o passo a passo por escrito</summary><ol>
+      <li>Na lista de pendentes, toque em <b>Recusar</b> na linha do pedido.</li>
+      <li>Se quiser, escreva o <b>motivo</b> (fica registrado).</li>
+      <li>Toque em <b>Confirmar recusa</b>.</li>
+      <li>Para consultar, use o filtro <b>Recusados</b>. O motivo aparece abaixo da finalidade.</li>
+      <li>Avise o associado por telefone ou WhatsApp.</li>
+    </ol></details>
+  </article>
+
+  <article class="aula" id="aula4">
+    <div class="aula-topo"><span class="num">4</span><div><h3>Filtrar, imprimir e excluir pedidos</h3><div class="meta">1 min 15 s</div></div></div>
+    <video controls playsinline preload="none" poster="/videos/aula4-filtrar-imprimir-excluir.jpg" src="/videos/aula4-filtrar-imprimir-excluir.mp4"></video>
+    <details class="passos"><summary>Ver o passo a passo por escrito</summary><ol>
+      <li>O primeiro filtro escolhe o tipo: <b>Pendentes</b>, <b>Confirmados</b>, <b>Recusados</b> ou <b>Todos</b>.</li>
+      <li>O segundo filtro escolhe o <b>ano</b>.</li>
+      <li><b>Imprimir / PDF</b> gera um relatório do que está na tela. Na janela de impressão, escolha imprimir ou <b>Salvar como PDF</b>.</li>
+      <li>Para apagar, toque em <b>Excluir</b> e confirme. A exclusão não pode ser desfeita.</li>
+      <li>Exclua só pedidos repetidos ou feitos por engano, para manter o histórico.</li>
+    </ol></details>
+  </article>
+
+  <article class="aula" id="aula5">
+    <div class="aula-topo"><span class="num">5</span><div><h3>Como o associado faz o pedido</h3><div class="meta">1 min 2 s</div></div></div>
+    <video controls playsinline preload="none" poster="/videos/aula5-pedido-do-associado.jpg" src="/videos/aula5-pedido-do-associado.mp4"></video>
+    <details class="passos"><summary>Ver o passo a passo por escrito</summary><ol>
+      <li>O associado abre o <b>link público</b> do agendamento. Não precisa de login.</li>
+      <li>Confere as <b>datas já reservadas</b> e pode navegar entre os meses.</li>
+      <li>Preenche nome, matrícula (se souber), telefone, data e finalidade.</li>
+      <li>Toca em <b>Enviar pedido</b>. O pedido chega ao painel como <b>pendente</b>.</li>
+    </ol></details>
+  </article>
+
+  <article class="aula" id="aula6">
+    <div class="aula-topo"><span class="num">6</span><div><h3>Cadastrar um novo usuário</h3><div class="meta">1 min 11 s <span class="selo">SÓ ADMINISTRADOR</span></div></div></div>
+    <video controls playsinline preload="none" poster="/videos/aula6-cadastrar-usuario.jpg" src="/videos/aula6-cadastrar-usuario.mp4"></video>
+    <details class="passos"><summary>Ver o passo a passo por escrito</summary><ol>
+      <li>No topo do painel, toque em <b>Usuários</b>.</li>
+      <li>Toque em <b>+ Novo usuário</b>.</li>
+      <li>Preencha o <b>nome</b>, o <b>login</b> (minúsculas, sem espaços nem acentos) e uma <b>senha inicial</b> (mínimo 6 caracteres).</li>
+      <li>Escolha o perfil: <b>Secretaria</b> (só agendamentos) ou <b>Administrador</b> (agendamentos e usuários).</li>
+      <li>Toque em <b>Salvar</b> e passe o login e a senha para a pessoa.</li>
+    </ol></details>
+  </article>
+
+  <article class="aula" id="aula7">
+    <div class="aula-topo"><span class="num">7</span><div><h3>Editar, trocar senha, desativar e excluir usuários</h3><div class="meta">1 min 11 s <span class="selo">SÓ ADMINISTRADOR</span></div></div></div>
+    <video controls playsinline preload="none" poster="/videos/aula7-gerenciar-usuarios.jpg" src="/videos/aula7-gerenciar-usuarios.mp4"></video>
+    <details class="passos"><summary>Ver o passo a passo por escrito</summary><ol>
+      <li>Toque em <b>Usuários</b>, no topo do painel.</li>
+      <li><b>Editar</b>: muda o nome ou o perfil. O login não pode ser alterado.</li>
+      <li><b>Nova senha</b>: define uma senha nova para quem esqueceu a sua.</li>
+      <li><b>Desativar</b>: bloqueia o acesso na hora, mas guarda o cadastro. <b>Reativar</b> devolve o acesso.</li>
+      <li><b>Excluir</b>: apaga o cadastro de vez.</li>
+      <li>Ninguém consegue desativar ou excluir a própria conta, e sempre fica pelo menos um administrador.</li>
+    </ol></details>
+  </article>
+
+  <section class="duvidas">
+    <h2>Dúvidas frequentes</h2>
+    <dl>
+      <dt>A página demora para abrir. Está com problema?</dt>
+      <dd>Não. Quando o sistema fica um tempo sem uso, ele "dorme" e leva até 1 minuto para abrir na primeira vez. Aguarde sem fechar a página.</dd>
+      <dt>Esqueci minha senha. O que faço?</dt>
+      <dd>Peça a um administrador para definir uma nova senha pelo botão <b>Usuários → Nova senha</b>. Depois, troque-a em <b>Minha conta</b>.</dd>
+      <dt>Não vejo o botão Usuários.</dt>
+      <dd>Esse botão aparece só para quem tem perfil de <b>Administrador</b>.</dd>
+      <dt>Aparece "Muitas tentativas. Aguarde alguns minutos."</dt>
+      <dd>Por segurança, após 5 senhas erradas o login fica bloqueado por 5 minutos. Espere e tente de novo com calma.</dd>
+    </dl>
+  </section>
+</main>
+
+<footer>ILTECN › Gestão Sindical · Manual do Painel de Agendamento</footer>
+
+<script>
+  // Só um vídeo tocando por vez
+  document.querySelectorAll('video').forEach(v => v.addEventListener('play', () => {
+    document.querySelectorAll('video').forEach(o => { if (o !== v) o.pause(); });
+  }));
+</script>
+</body>
+</html>

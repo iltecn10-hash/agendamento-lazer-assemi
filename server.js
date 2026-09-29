@@ -431,6 +431,7 @@ async function start() {
   const PUBLIC_DIR = path.join(__dirname, 'public');
   app.use(express.static(PUBLIC_DIR));
   app.get('/admin', (req, res) => res.sendFile(path.join(PUBLIC_DIR, 'admin.html')));
+  app.get('/ajuda', (req, res) => res.sendFile(path.join(PUBLIC_DIR, 'ajuda.html')));
   app.get('/', (req, res) => res.sendFile(path.join(PUBLIC_DIR, 'index.html')));
 
   app.listen(PORT, () => {
