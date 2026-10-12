@@ -45,6 +45,7 @@
   }
   .aviso-sucesso h3 { margin: 6px 0 4px; font-family: 'Lora', serif; }
   .aviso-sucesso p { margin: 0; font-size: 13.5px; color: var(--ink-soft); }
+  .aviso-sucesso button.enviar { margin-top: 14px; }
   .mes-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
   .mes-nav button { background: var(--paper-alt); border: 1px solid var(--line); border-radius: 5px; padding: 6px 10px; cursor: pointer; font-size: 13px; }
   .mes-nav span { font-weight: 600; font-family: 'Lora', serif; color: var(--teal-dark); }
@@ -128,6 +129,7 @@
     <div id="sucesso" class="aviso-sucesso" style="display:none;">
       <h3>Pedido enviado! 🎉</h3>
       <p>Aguarde o contato da secretaria confirmando ou não a reserva.</p>
+      <button class="enviar" id="btnNovoCadastro" type="button">Novo Cadastro</button>
     </div>
   </div>
 
@@ -228,6 +230,21 @@
       btn.disabled = false;
       btn.textContent = 'Enviar pedido';
     }
+  });
+
+  // "Novo Cadastro": só prepara a tela para um novo pedido. Não chama a API,
+  // não altera nem reenvia o pedido anterior (que já está salvo no banco).
+  document.getElementById('btnNovoCadastro').addEventListener('click', () => {
+    ['fNome','fMatricula','fTelefone','fData','fFinalidade','fObs'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+    limparErros();
+    const btn = document.getElementById('btnEnviar');
+    btn.disabled = false;
+    btn.textContent = 'Enviar pedido';
+    document.getElementById('sucesso').style.display = 'none';
+    document.getElementById('formulario').style.display = 'block';
+    document.getElementById('fNome').focus();
   });
 
   carregarCalendario();
